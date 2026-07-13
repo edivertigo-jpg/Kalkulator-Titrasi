@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kalkulator Titrasi Syringe Pump</title>
+<meta name="description" content="Kalkulator titrasi obat syringe pump untuk perawat ICU">
+<meta name="theme-color" content="#0d5e5e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --teal-900:#0a3d3d;
+    --teal-800:#0d5e5e;
+    --teal-700:#0f7373;
+    --teal-500:#159090;
+    --teal-100:#e3f4f2;
+    --bg:#f3f7f6;
+    --card:#ffffff;
+    --ink:#16302e;
+    --ink-soft:#5b7573;
+    --line:#dbe8e6;
+    --warn-bg:#fff4e5;
+    --warn-ink:#8a5a00;
+    --danger:#c0392b;
+    --radius:16px;
+    --shadow: 0 2px 10px rgba(10,61,61,0.08), 0 1px 2px rgba(10,61,61,0.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  header.app{
+    background: linear-gradient(135deg, var(--teal-800), var(--teal-700));
+    color:#fff;
+    padding:22px 18px 20px;
+    border-radius:0 0 22px 22px;
+    box-shadow: var(--shadow);
+  }
+  header.app h1{
+    margin:0;
+    font-size:1.28rem;
+    font-weight:700;
+    display:flex; align-items:center; gap:10px;
+  }
+  header.app h1 img{width:30px;height:30px;border-radius:8px;}
+  header.app p{
+    margin:6px 0 0;
+    font-size:0.83rem;
+    color:#d3ece9;
+  }
+  main{
+    max-width:520px;
+    margin:0 auto;
+    padding:16px 14px 10px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow: var(--shadow);
+    padding:16px;
+    margin-bottom:14px;
+    border:1px solid var(--line);
+  }
+  .card h2{
+    font-size:0.95rem;
+    margin:0 0 12px;
+    color:var(--teal-800);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h2 .step{
+    background:var(--teal-800);
+    color:#fff;
+    width:20px;height:20px;
+    border-radius:50%;
+    font-size:0.72rem;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  label{
+    display:block;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin:10px 0 4px;
+    font-weight:600;
+  }
+  label:first-of-type{margin-top:0;}
+  .row{display:flex; gap:8px;}
+  .row > div{flex:1;}
+  select, input[type="number"], input[type="text"]{
+    width:100%;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    font-size:1rem;
+    background:#fbfdfd;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  select:focus, input:focus{
+    outline:none;
+    border-color:var(--teal-500);
+    background:#fff;
+  }
+  .unit-select{
+    max-width:118px;
+  }
+  .inline-input{
+    display:flex; gap:8px;
+  }
+  .inline-input input{flex:1;}
+  .result-box{
+    margin-top:14px;
+    background:var(--teal-100);
+    border:1.5px solid var(--teal-500);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+  }
+  .result-box .val{
+    font-size:2.1rem;
+    font-weight:800;
+    color:var(--teal-800);
+    line-height:1.1;
+  }
+  .result-box .unit{
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--teal-700);
+  }
+  .result-box .sub{
+    margin-top:4px;
+    font-size:0.76rem;
+    color:var(--ink-soft);
+  }
+  .mini-result{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--bg);
+    border-radius:10px;
+    padding:9px 12px;
+    margin-top:10px;
+    font-size:0.85rem;
+  }
+  .mini-result b{color:var(--teal-800); font-size:0.95rem;}
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+    background:#e6efed;
+    padding:4px;
+    border-radius:12px;
+  }
+  .tabs button{
+    flex:1;
+    padding:9px 6px;
+    border:none;
+    background:transparent;
+    border-radius:9px;
+    font-size:0.82rem;
+    font-weight:700;
+    color:var(--ink-soft);
+    font-family:inherit;
+  }
+  .tabs button.active{
+    background:#fff;
+    color:var(--teal-800);
+    box-shadow:0 1px 4px rgba(0,0,0,0.1);
+  }
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+  .note{
+    font-size:0.74rem;
+    color:var(--ink-soft);
+    margin-top:8px;
+    line-height:1.45;
+  }
+  .warn{
+    background:var(--warn-bg);
+    color:var(--warn-ink);
+    border-radius:10px;
+    padding:9px 11px;
+    font-size:0.76rem;
+    margin-top:10px;
+    display:none;
+    line-height:1.4;
+  }
+  .warn.show{display:block;}
+  .disclaimer{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:14px 20px 6px;
+    line-height:1.5;
+  }
+  .footer-brand{
+    text-align:center;
+    font-size:0.68rem;
+    color:#9db3b1;
+    padding-bottom:10px;
+  }
+  .segmented{
+    display:flex;
+    background:#eef4f3;
+    border-radius:10px;
+    padding:3px;
+    gap:3px;
+  }
+  .segmented button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:8px 4px;
+    border-radius:8px;
+    font-size:0.76rem;
+    font-weight:700;
+    color:var(--ink-soft);
+    font-family:inherit;
+  }
+  .segmented button.active{
+    background:var(--teal-700);
+    color:#fff;
+  }
+  .install-banner{
+    display:none;
+    max-width:520px;
+    margin:0 auto 12px;
+    padding:0 14px;
+  }
+  .install-banner.show{display:block;}
+  .install-inner{
+    background:#fff;
+    border:1.5px solid var(--teal-500);
+    border-radius:12px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:0.8rem;
+    box-shadow:var(--shadow);
+  }
+  .install-inner button{
+    background:var(--teal-700);
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:0.78rem;
+    white-space:nowrap;
+  }
+  .drug-hint{
+    font-size:0.74rem;
+    color:var(--teal-700);
+    background:var(--teal-100);
+    border-radius:8px;
+    padding:6px 9px;
+    margin-top:8px;
+    display:none;
+  }
+  .drug-hint.show{display:block;}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <h1><img src="icons/icon-192.png" alt=""> Kalkulator Titrasi Syringe Pump</h1>
+  <p>Norepinefrin &middot; Dopamin &middot; Dobutamin &middot; Adrenalin &middot; dan obat drip lainnya</p>
+</header>
+
+<div class="install-banner" id="installBanner">
+  <div class="install-inner">
+    <span>Pasang aplikasi ini di layar utama untuk akses offline.</span>
+    <button id="installBtn">Pasang</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- STEP 1: KONSENTRASI -->
+  <div class="card">
+    <h2><span class="step">1</span> Konsentrasi Obat</h2>
+
+    <label for="drugPreset">Pilih obat (opsional, isi cepat)</label>
+    <select id="drugPreset">
+      <option value="">— Manual / lainnya —</option>
+    </select>
+    <div class="drug-hint" id="drugHint"></div>
+
+    <div class="row">
+      <div>
+        <label for="drugAmount">Jumlah obat</label>
+        <input type="number" id="drugAmount" inputmode="decimal" placeholder="cth. 4" min="0" step="any">
+      </div>
+      <div style="max-width:100px;">
+        <label for="drugAmountUnit">Satuan</label>
+        <select id="drugAmountUnit">
+          <option value="mg">mg</option>
+          <option value="mcg">mcg</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="totalVolume">Total volume pelarut (mL)</label>
+    <input type="number" id="totalVolume" inputmode="decimal" placeholder="cth. 50" min="0" step="any">
+
+    <div class="mini-result">
+      <span>Konsentrasi larutan</span>
+      <b id="concResult">— mcg/mL</b>
+    </div>
+    <div class="warn" id="concWarn"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button id="tabBtnSpeed" class="active" onclick="switchTab('speed')">Hitung Kecepatan</button>
+    <button id="tabBtnDose" onclick="switchTab('dose')">Cek Dosis Berjalan</button>
+  </div>
+
+  <!-- TAB: HITUNG KECEPATAN -->
+  <div class="tabpanel active" id="panelSpeed">
+    <div class="card">
+      <h2><span class="step">2</span> Data Pasien &amp; Target Dosis</h2>
+
+      <label for="bwSpeed">Berat badan pasien (kg)</label>
+      <input type="number" id="bwSpeed" inputmode="decimal" placeholder="cth. 60" min="0" step="any">
+
+      <label>Satuan dosis target</label>
+      <div class="segmented" id="doseUnitSeg">
+        <button data-unit="mcgkgmin" class="active">mcg/kg/menit</button>
+        <button data-unit="mcgkghr">mcg/kg/jam</button>
+        <button data-unit="mghr">mg/jam</button>
+      </div>
+
+      <label for="doseTarget" id="doseTargetLabel">Dosis target (mcg/kg/menit)</label>
+      <input type="number" id="doseTarget" inputmode="decimal" placeholder="cth. 0.2" min="0" step="any">
+
+      <div class="result-box">
+        <div class="val" id="speedResult">—</div>
+        <div class="unit">mL/jam</div>
+        <div class="sub" id="speedSub">Isi data di atas untuk menghitung</div>
+      </div>
+      <div class="warn" id="speedWarn"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CEK DOSIS BERJALAN -->
+  <div class="tabpanel" id="panelDose">
+    <div class="card">
+      <h2><span class="step">2</span> Cek Dosis dari Kecepatan Berjalan</h2>
+      <p class="note" style="margin-top:0;">Gunakan ini untuk memverifikasi berapa dosis (mcg/kg/menit) yang sedang diterima pasien dari kecepatan pump yang berjalan saat ini.</p>
+
+      <label for="bwDose">Berat badan pasien (kg)</label>
+      <input type="number" id="bwDose" inputmode="decimal" placeholder="cth. 60" min="0" step="any">
+
+      <label for="runningSpeed">Kecepatan pump saat ini (mL/jam)</label>
+      <input type="number" id="runningSpeed" inputmode="decimal" placeholder="cth. 9" min="0" step="any">
+
+      <div class="result-box">
+        <div class="val" id="doseResult">—</div>
+        <div class="unit">mcg/kg/menit</div>
+        <div class="sub" id="doseSub">Isi data di atas untuk menghitung</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Rumus yang digunakan</h2>
+    <p class="note" style="margin-top:0;">
+      <b>Konsentrasi (mcg/mL)</b> = Jumlah obat (mcg) ÷ Total volume (mL)<br><br>
+      <b>Kecepatan (mL/jam)</b> = (Dosis mcg/kg/menit × BB × 60) ÷ Konsentrasi<br><br>
+      <b>mg/jam</b> → mL/jam = mg/jam ÷ Konsentrasi (mg/mL)
+    </p>
+  </div>
+
+  <p class="disclaimer">
+    ⚠️ Alat bantu hitung ini <b>tidak menggantikan</b> penilaian klinis, kebijakan farmasi, atau protokol rumah sakit. Selalu lakukan <b>double check</b> dengan perawat/dokter lain sebelum menyesuaikan titrasi obat vasoaktif. Nilai default konsentrasi obat adalah contoh umum dan dapat berbeda sesuai kebijakan unit Anda.
+  </p>
+  <div class="footer-brand">Kalkulator Titrasi Syringe Pump &middot; ICU Tools</div>
+</main>
+
+<script>
+// ---------- DATA PRESET OBAT ----------
+const DRUGS = [
+  { name: "Norepinefrin (Noradrenalin)", amount: 4, unit: "mg", volume: 50, note: "Default umum: 4 mg dalam 50 mL NaCl 0,9%. Dosis lazim 0,01–3 mcg/kg/menit." },
+  { name: "Dopamin", amount: 400, unit: "mg", volume: 50, note: "Default umum: 400 mg dalam 50 mL. Dosis lazim 2–20 mcg/kg/menit." },
+  { name: "Dobutamin", amount: 250, unit: "mg", volume: 50, note: "Default umum: 250 mg dalam 50 mL. Dosis lazim 2–20 mcg/kg/menit." },
+  { name: "Adrenalin (Epinefrin)", amount: 4, unit: "mg", volume: 50, note: "Default umum: 4 mg dalam 50 mL. Dosis lazim 0,01–0,5 mcg/kg/menit." },
+  { name: "Nitrogliserin", amount: 50, unit: "mg", volume: 50, note: "Default umum: 50 mg dalam 50 mL. Dosis lazim 5–200 mcg/menit (tanpa BB, sesuaikan protokol)." },
+  { name: "Nitroprusside", amount: 50, unit: "mg", volume: 50, note: "Default umum: 50 mg dalam 50 mL. Dosis lazim 0,25–10 mcg/kg/menit." },
+  { name: "Fenilefrin", amount: 10, unit: "mg", volume: 50, note: "Default umum: 10 mg dalam 50 mL. Dosis lazim 0,1–0,5 mcg/kg/menit." },
+  { name: "Isoproterenol", amount: 1, unit: "mg", volume: 50, note: "Default umum: 1 mg dalam 50 mL. Dosis lazim 0,01–0,1 mcg/kg/menit." },
+  { name: "Milrinon", amount: 20, unit: "mg", volume: 100, note: "Default umum: 20 mg dalam 100 mL. Dosis lazim 0,25–0,75 mcg/kg/menit." },
+];
+
+const drugSelect = document.getElementById('drugPreset');
+DRUGS.forEach((d, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = d.name;
+  drugSelect.appendChild(opt);
+});
+
+const drugAmount = document.getElementById('drugAmount');
+const drugAmountUnit = document.getElementById('drugAmountUnit');
+const totalVolume = document.getElementById('totalVolume');
+const drugHint = document.getElementById('drugHint');
+const concWarn = document.getElementById('concWarn');
+
+drugSelect.addEventListener('change', () => {
+  const idx = drugSelect.value;
+  if (idx === '') {
+    drugHint.classList.remove('show');
+    calcAll();
+    return;
+  }
+  const d = DRUGS[idx];
+  drugAmount.value = d.amount;
+  drugAmountUnit.value = d.unit;
+  totalVolume.value = d.volume;
+  drugHint.textContent = d.note;
+  drugHint.classList.add('show');
+  calcAll();
+});
+
+function parseNum(v) {
+  if (v === null || v === undefined) return NaN;
+  const s = String(v).trim().replace(',', '.');
+  if (s === '') return NaN;
+  const n = parseFloat(s);
+  return isNaN(n) ? NaN : n;
+}
+
+function fmt(n, maxDecimals = 2) {
+  if (!isFinite(n)) return '—';
+  return n.toLocaleString('id-ID', { maximumFractionDigits: maxDecimals, minimumFractionDigits: 0 });
+}
+
+// ---------- KONSENTRASI ----------
+const concResultEl = document.getElementById('concResult');
+
+function getConcentration() {
+  const amt = parseNum(drugAmount.value);
+  const vol = parseNum(totalVolume.value);
+  if (isNaN(amt) || isNaN(vol) || vol <= 0 || amt <= 0) return null;
+  const amtMcg = drugAmountUnit.value === 'mg' ? amt * 1000 : amt;
+  return amtMcg / vol; // mcg/mL
+}
+
+function updateConcentration() {
+  const conc = getConcentration();
+  if (conc === null) {
+    concResultEl.textContent = '— mcg/mL';
+    concWarn.classList.remove('show');
+    return null;
+  }
+  let display;
+  if (conc >= 1000) {
+    display = fmt(conc / 1000, 3) + ' mg/mL (' + fmt(conc, 1) + ' mcg/mL)';
+  } else {
+    display = fmt(conc, 2) + ' mcg/mL';
+  }
+  concResultEl.textContent = display;
+
+  if (conc > 20000) {
+    concWarn.textContent = '⚠️ Konsentrasi sangat tinggi, periksa kembali satuan dan jumlah obat.';
+    concWarn.classList.add('show');
+  } else {
+    concWarn.classList.remove('show');
+  }
+  return conc;
+}
+
+// ---------- TAB SWITCH ----------
+function switchTab(tab) {
+  const isSpeed = tab === 'speed';
+  document.getElementById('panelSpeed').classList.toggle('active', isSpeed);
+  document.getElementById('panelDose').classList.toggle('active', !isSpeed);
+  document.getElementById('tabBtnSpeed').classList.toggle('active', isSpeed);
+  document.getElementById('tabBtnDose').classList.toggle('active', !isSpeed);
+}
+
+// ---------- KECEPATAN ----------
+const bwSpeed = document.getElementById('bwSpeed');
+const doseTarget = document.getElementById('doseTarget');
+const doseTargetLabel = document.getElementById('doseTargetLabel');
+const speedResultEl = document.getElementById('speedResult');
+const speedSubEl = document.getElementById('speedSub');
+const speedWarn = document.getElementById('speedWarn');
+const doseUnitSeg = document.getElementById('doseUnitSeg');
+let currentDoseUnit = 'mcgkgmin';
+
+doseUnitSeg.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    doseUnitSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDoseUnit = btn.dataset.unit;
+    const labels = {
+      mcgkgmin: 'Dosis target (mcg/kg/menit)',
+      mcgkghr: 'Dosis target (mcg/kg/jam)',
+      mghr: 'Dosis target (mg/jam)'
+    };
+    doseTargetLabel.textContent = labels[currentDoseUnit];
+    calcAll();
+  });
+});
+
+function calcSpeed() {
+  const conc = getConcentration(); // mcg/mL
+  const bw = parseNum(bwSpeed.value);
+  const dose = parseNum(doseTarget.value);
+
+  speedWarn.classList.remove('show');
+
+  if (conc === null) {
+    speedResultEl.textContent = '—';
+    speedSubEl.textContent = 'Lengkapi data konsentrasi obat di atas';
+    return;
+  }
+  if (currentDoseUnit !== 'mghr' && (isNaN(bw) || bw <= 0)) {
+    speedResultEl.textContent = '—';
+    speedSubEl.textContent = 'Masukkan berat badan pasien';
+    return;
+  }
+  if (isNaN(dose) || dose <= 0) {
+    speedResultEl.textContent = '—';
+    speedSubEl.textContent = 'Masukkan dosis target';
+    return;
+  }
+
+  let mlPerHour;
+  if (currentDoseUnit === 'mcgkgmin') {
+    mlPerHour = (dose * bw * 60) / conc;
+  } else if (currentDoseUnit === 'mcgkghr') {
+    mlPerHour = (dose * bw) / conc;
+  } else if (currentDoseUnit === 'mghr') {
+    const concMgPerMl = conc / 1000;
+    mlPerHour = dose / concMgPerMl;
+  }
+
+  if (!isFinite(mlPerHour) || mlPerHour < 0) {
+    speedResultEl.textContent = '—';
+    speedSubEl.textContent = 'Periksa kembali data yang dimasukkan';
+    return;
+  }
+
+  speedResultEl.textContent = fmt(mlPerHour, 2);
+  speedSubEl.textContent = 'Rumus: (Dosis × BB × 60) ÷ Konsentrasi';
+
+  if (mlPerHour > 99) {
+    speedWarn.textContent = '⚠️ Kecepatan di atas 99 mL/jam — cek ulang satuan/konsentrasi, kemungkinan besar tidak wajar untuk syringe pump standar.';
+    speedWarn.classList.add('show');
+  } else if (mlPerHour < 0.1) {
+    speedWarn.textContent = '⚠️ Kecepatan sangat kecil (<0,1 mL/jam) — pertimbangkan konsentrasi lebih pekat atau periksa kembali input.';
+    speedWarn.classList.add('show');
+  }
+}
+
+// ---------- CEK DOSIS BERJALAN ----------
+const bwDose = document.getElementById('bwDose');
+const runningSpeed = document.getElementById('runningSpeed');
+const doseResultEl = document.getElementById('doseResult');
+const doseSubEl = document.getElementById('doseSub');
+
+function calcRunningDose() {
+  const conc = getConcentration(); // mcg/mL
+  const bw = parseNum(bwDose.value);
+  const speed = parseNum(runningSpeed.value);
+
+  if (conc === null) {
+    doseResultEl.textContent = '—';
+    doseSubEl.textContent = 'Lengkapi data konsentrasi obat di atas';
+    return;
+  }
+  if (isNaN(bw) || bw <= 0) {
+    doseResultEl.textContent = '—';
+    doseSubEl.textContent = 'Masukkan berat badan pasien';
+    return;
+  }
+  if (isNaN(speed) || speed <= 0) {
+    doseResultEl.textContent = '—';
+    doseSubEl.textContent = 'Masukkan kecepatan pump saat ini';
+    return;
+  }
+
+  const doseMcgKgMin = (speed * conc) / (bw * 60);
+  doseResultEl.textContent = fmt(doseMcgKgMin, 4);
+  doseSubEl.textContent = 'Rumus: (mL/jam × Konsentrasi) ÷ (BB × 60)';
+}
+
+function calcAll() {
+  updateConcentration();
+  calcSpeed();
+  calcRunningDose();
+}
+
+[drugAmount, drugAmountUnit, totalVolume, bwSpeed, doseTarget, bwDose, runningSpeed].forEach(el => {
+  el.addEventListener('input', calcAll);
+  el.addEventListener('change', calcAll);
+});
+
+calcAll();
+
+// ---------- PWA: SERVICE WORKER ----------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// ---------- PWA: INSTALL PROMPT ----------
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.classList.add('show');
+});
+
+installBtn?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBanner.classList.remove('show');
+});
+
+window.addEventListener('appinstalled', () => {
+  installBanner.classList.remove('show');
+});
+</script>
+</body>
+</html>
