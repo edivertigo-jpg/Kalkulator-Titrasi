@@ -241,15 +241,44 @@
     background:#fff;
     border:1.5px solid var(--teal-500);
     border-radius:12px;
-    padding:10px 12px;
+    padding:12px 26px 12px 14px;
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:space-between;
     gap:10px;
     font-size:0.8rem;
     box-shadow:var(--shadow);
+    position:relative;
   }
-  .install-inner button{
+  .install-inner .txt{
+    line-height:1.45;
+  }
+  .install-inner .txt b{color:var(--teal-800);}
+  .install-inner .steps{
+    margin:6px 0 0;
+    padding-left:18px;
+    font-size:0.78rem;
+  }
+  .install-inner .steps li{margin-bottom:2px;}
+  .install-inner .actions{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:flex-end;
+    flex:none;
+  }
+  .install-inner button.close-btn{
+    background:transparent;
+    color:var(--ink-soft);
+    border:none;
+    font-size:1rem;
+    line-height:1;
+    padding:2px 4px;
+    position:absolute;
+    top:6px;
+    right:6px;
+  }
+  .install-inner button.install-cta{
     background:var(--teal-700);
     color:#fff;
     border:none;
@@ -288,8 +317,8 @@
 
 <div class="install-banner" id="installBanner">
   <div class="install-inner">
-    <span>Pasang aplikasi ini di layar utama untuk akses offline.</span>
-    <button id="installBtn">Pasang</button>
+    <button class="close-btn" id="installCloseBtn" aria-label="Tutup">✕</button>
+    <div class="txt" id="installText">Pasang aplikasi ini di layar utama untuk akses offline.</div>
   </div>
 </div>
 
@@ -619,35 +648,100 @@ function calcAll() {
 
 calcAll();
 
-// ---------- PWA: SERVICE WORKER ----------
+// ---------- PWA: INSTALL BANNER (selalu tampil dengan panduan sesuai perangkat) ----------
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const installText = document.getElementById('installText');
+const installCloseBtn = document.getElementById('installCloseBtn');
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function isAndroid() {
+  return /Android/.test(navigator.userAgent);
+}
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isDismissedThisSession() {
+  try { return sessionStorage.getItem('installBannerDismissed') === '1'; } catch(e) { return false; }
+}
+function setDismissed() {
+  try { sessionStorage.setItem('installBannerDismissed', '1'); } catch(e) {}
+  installBanner.classList.remove('show');
+}
+
+installCloseBtn.addEventListener('click', setDismissed);
+
+function renderBanner(mode) {
+  if (isStandalone() || isDismissedThisSession()) return;
+
+  if (mode === 'android-native') {
+    installText.innerHTML = '<b>Pasang aplikasi ini</b> ke layar utama biar bisa dipakai offline.' +
+      '<div class="actions" style="margin-top:8px; align-items:stretch;"><button class="install-cta" id="installCta">Pasang Sekarang</button></div>';
+    document.getElementById('installCta').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBanner.classList.remove('show');
+    });
+  } else if (mode === 'ios') {
+    installText.innerHTML = '<b>Pasang aplikasi ini di iPhone:</b>' +
+      '<ol class="steps">' +
+      '<li>Ketuk tombol <b>Share</b> (kotak dengan panah ke atas) di Safari</li>' +
+      '<li>Pilih <b>"Add to Home Screen"</b> / "Tambah ke Layar Utama"</li>' +
+      '<li>Ketuk <b>Add</b> di pojok kanan atas</li>' +
+      '</ol>';
+  } else if (mode === 'android-manual') {
+    installText.innerHTML = '<b>Pasang aplikasi ini:</b>' +
+      '<ol class="steps">' +
+      '<li>Ketuk menu titik tiga (⋮) di pojok kanan atas Chrome</li>' +
+      '<li>Pilih <b>"Instal aplikasi"</b> atau <b>"Tambahkan ke Layar Utama"</b></li>' +
+      '</ol>';
+  } else {
+    installText.innerHTML = '<b>Pasang aplikasi ini di komputer:</b>' +
+      '<ol class="steps">' +
+      '<li>Klik ikon pasang di ujung kanan address bar, atau</li>' +
+      '<li>Menu titik tiga (⋮) → <b>"Instal [nama aplikasi]..."</b></li>' +
+      '</ol>';
+  }
+  installBanner.classList.add('show');
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
 
-// ---------- PWA: INSTALL PROMPT ----------
-let deferredPrompt;
-const installBanner = document.getElementById('installBanner');
-const installBtn = document.getElementById('installBtn');
-
+let nativePromptFired = false;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBanner.classList.add('show');
-});
-
-installBtn?.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  installBanner.classList.remove('show');
+  nativePromptFired = true;
+  renderBanner('android-native');
 });
 
 window.addEventListener('appinstalled', () => {
   installBanner.classList.remove('show');
 });
+
+// Tampilkan panduan yang sesuai kalau prompt otomatis dari browser tidak muncul
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (isStandalone() || isDismissedThisSession()) return;
+    if (nativePromptFired) return; // sudah ditangani oleh beforeinstallprompt
+    if (isIOS()) {
+      renderBanner('ios');
+    } else if (isAndroid()) {
+      renderBanner('android-manual');
+    } else {
+      renderBanner('desktop-manual');
+    }
+  }, 1800);
+});
+
 </script>
 </body>
 </html>
